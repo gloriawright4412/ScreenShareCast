@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeftRight, FolderClosed, Layers, Pause, Settings, CirclePlus } from "lucide-react";
+import { ArrowLeftRight, FolderClosed, Layers, Pause, Settings, CirclePlus, Mic, MicOff } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useShareContext } from "@/contexts/ShareContext";
 import { webRTCManager } from "@/lib/webrtc";
 import { QualitySettings } from "@/lib/peerConnection";
@@ -15,7 +16,9 @@ const ActiveSharingView = () => {
     setActiveView,
     connectedDevices,
     localStream,
-    stopSharing
+    stopSharing,
+    useMicrophone,
+    setUseMicrophone
   } = useShareContext();
   
   const [sharingTime, setSharingTime] = useState<number>(0);
@@ -37,12 +40,19 @@ const ActiveSharingView = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerInterval = useRef<number | null>(null);
 
-  // Setup the local stream in the video element
+  // Setup the local stream in the video element and sync the mic state
   useEffect(() => {
     if (videoRef.current && localStream) {
       videoRef.current.srcObject = localStream;
+      
+      // Initialize audio tracks based on useMicrophone setting
+      const audioTracks = localStream.getAudioTracks();
+      audioTracks.forEach(track => {
+        track.enabled = useMicrophone;
+      });
+      setShareAudio(useMicrophone);
     }
-  }, [localStream, videoRef]);
+  }, [localStream, videoRef, useMicrophone]);
 
   // Start the timer when the component mounts
   useEffect(() => {
@@ -173,9 +183,27 @@ const ActiveSharingView = () => {
             <span className="inline-block h-2 w-2 rounded-full bg-green-500 mr-2"></span>
             <span>Live · </span>
             <span className="ml-1" id="sharingTime">{formatSharingTime()}</span>
+            
+            {useMicrophone && (
+              <Badge variant="outline" className="ml-3 flex items-center gap-1 text-primary border-primary">
+                <Mic className="h-3 w-3" />
+                Microphone active
+              </Badge>
+            )}
           </div>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className={`${useMicrophone ? 'bg-green-50 text-green-600 border-green-200' : 'bg-gray-50 text-gray-600 border-gray-200'}`}
+            onClick={() => {
+              setUseMicrophone(!useMicrophone);
+              handleAudioToggle(!useMicrophone);
+            }}
+          >
+            {useMicrophone ? <Mic className="h-4 w-4 mr-1" /> : <MicOff className="h-4 w-4 mr-1" />}
+            {useMicrophone ? 'Mic On' : 'Mic Off'}
+          </Button>
           <Button
             onClick={stopSharing}
             className="bg-red-500 hover:bg-red-600 text-white"

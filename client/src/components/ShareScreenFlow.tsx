@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, ArrowRight, Copy, Laptop, Layers, Chrome } from "lucide-react";
+import { ArrowLeft, ArrowRight, Copy, Laptop, Layers, Chrome, Mic } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useShareContext } from "@/contexts/ShareContext";
 import { webRTCManager } from "@/lib/webrtc";
@@ -16,7 +18,9 @@ const ShareScreenFlow = () => {
     sessionCode, 
     clientId,
     setShowPermissionRequest,
-    setConnecting
+    setConnecting,
+    useMicrophone,
+    setUseMicrophone
   } = useShareContext();
   
   const [shareOption, setShareOption] = useState<string>("entire-screen");
@@ -305,6 +309,31 @@ const ShareScreenFlow = () => {
               <p className="text-sm text-gray-500">Scan with the ScreenCast app or your camera</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <h3 className="font-medium mb-4">Audio Options</h3>
+          <div className="flex items-center justify-between py-2">
+            <div className="flex items-center space-x-3">
+              <Mic className={`h-5 w-5 ${useMicrophone ? "text-primary" : "text-gray-400"}`} />
+              <Label htmlFor="micToggle" className="cursor-pointer">
+                Share microphone audio
+              </Label>
+            </div>
+            <Switch
+              id="micToggle"
+              checked={useMicrophone}
+              onCheckedChange={setUseMicrophone}
+            />
+          </div>
+          <p className="text-sm text-gray-500 mt-2 pl-8">
+            {useMicrophone 
+              ? "Your voice will be transmitted to viewers. Perfect for presentations and online classes."
+              : "Only screen content will be shared. Enable microphone to speak to viewers."
+            }
+          </p>
         </CardContent>
       </Card>
       

@@ -41,6 +41,8 @@ interface ShareContextProps {
   connectedDevices: ConnectedDevice[];
   generateSessionCode: () => void;
   cancelConnection: () => void;
+  useMicrophone: boolean;
+  setUseMicrophone: (useMic: boolean) => void;
   requestScreenCapture: () => Promise<void>;
   stopSharing: () => void;
 }
@@ -69,6 +71,8 @@ const ShareContext = createContext<ShareContextProps>({
   connectedDevices: [],
   generateSessionCode: () => {},
   cancelConnection: () => {},
+  useMicrophone: false,
+  setUseMicrophone: () => {},
   requestScreenCapture: async () => {},
   stopSharing: () => {}
 });
@@ -89,6 +93,7 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [connectedDeviceName, setConnectedDeviceName] = useState<string | null>(null);
   const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
+  const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
   
   // Hide permission request modal
   const hidePermissionRequest = useCallback(() => {
@@ -142,8 +147,8 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
       hidePermissionRequest();
       setConnecting(true);
       
-      // Request screen capture
-      const stream = await captureScreen();
+      // Request screen capture with microphone if enabled
+      const stream = await captureScreen(useMicrophone);
       setLocalStream(stream);
       
       // Setup WebRTC for the captured stream
@@ -194,7 +199,7 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
         variant: "destructive",
       });
     }
-  }, [captureScreen, hidePermissionRequest, toast]);
+  }, [captureScreen, hidePermissionRequest, toast, useMicrophone]);
   
   // Stop sharing screen or disconnect from shared screen
   const stopSharing = useCallback(() => {
@@ -308,6 +313,8 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
     connectedDevices,
     generateSessionCode,
     cancelConnection,
+    useMicrophone,
+    setUseMicrophone,
     requestScreenCapture,
     stopSharing
   };
