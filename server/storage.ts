@@ -93,7 +93,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.connections.values())
       .filter(conn => conn.userId === userId)
       .sort((a, b) => {
-        return new Date(b.lastConnected).getTime() - new Date(a.lastConnected).getTime();
+        // Handle null values by treating them as the oldest date
+        const dateA = a.lastConnected ? new Date(a.lastConnected) : new Date(0);
+        const dateB = b.lastConnected ? new Date(b.lastConnected) : new Date(0);
+        return dateB.getTime() - dateA.getTime();
       });
   }
   
@@ -120,4 +123,11 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import database storage and use it instead of memory storage
+import { DatabaseStorage } from "./database-storage";
+
+// Use database storage
+export const storage = new DatabaseStorage();
+
+// Keep memory storage implementation available for reference and quick switching
+// export const storage = new MemStorage();

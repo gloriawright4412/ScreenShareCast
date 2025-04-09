@@ -1,6 +1,7 @@
-import { pgTable, text, serial, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -50,3 +51,19 @@ export const insertConnectionSchema = createInsertSchema(connections).pick({
 
 export type InsertConnection = z.infer<typeof insertConnectionSchema>;
 export type Connection = typeof connections.$inferSelect;
+
+// Define relations
+export const usersRelations = relations(users, ({ many }) => ({
+  connections: many(connections),
+}));
+
+export const connectionsRelations = relations(connections, ({ one }) => ({
+  user: one(users, {
+    fields: [connections.userId],
+    references: [users.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ many }) => ({
+  // Sessions can have multiple connections in the future
+}));
