@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeftRight, FolderClosed, Layers, Pause, Settings, CirclePlus, Mic, MicOff } from "lucide-react";
+import { ArrowLeftRight, FolderClosed, Layers, Pause, Settings, CirclePlus, Mic, MicOff, FileIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -203,6 +203,14 @@ const ActiveSharingView = () => {
           >
             {useMicrophone ? <Mic className="h-4 w-4 mr-1" /> : <MicOff className="h-4 w-4 mr-1" />}
             {useMicrophone ? 'Mic On' : 'Mic Off'}
+          </Button>
+          <Button
+            variant="outline"
+            className="bg-blue-50 text-blue-600 border-blue-200"
+            onClick={() => setActiveView("fileTransfer")}
+          >
+            <FileIcon className="h-4 w-4 mr-1" />
+            Share Files
           </Button>
           <Button
             onClick={stopSharing}

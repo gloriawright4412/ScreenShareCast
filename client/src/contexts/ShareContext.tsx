@@ -5,6 +5,7 @@ import { generateShareCode } from "@/utils/generateShareCode";
 import { sendWebSocketMessage, addMessageListener, removeMessageListener, getClientId } from "@/lib/websocket";
 import { apiRequest } from "@/lib/queryClient";
 import { useScreenCapture } from "@/hooks/use-screen-capture";
+import { fileTransferManager, FileTransferProgress } from "@/lib/fileTransfer";
 
 // Types
 export type DeviceType = "laptop" | "mobile" | "tv";
@@ -15,7 +16,7 @@ export interface ConnectedDevice {
   type: DeviceType;
 }
 
-export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving";
+export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving" | "fileTransfer";
 
 // Context interface
 interface ShareContextProps {
@@ -45,6 +46,11 @@ interface ShareContextProps {
   setUseMicrophone: (useMic: boolean) => void;
   requestScreenCapture: () => Promise<void>;
   stopSharing: () => void;
+  // File transfer methods
+  sendFile: (file: File) => Promise<string>;
+  cancelFileTransfer: (fileId: string) => boolean;
+  fileTransfers: FileTransferProgress[];
+  receivedFiles: File[];
 }
 
 // Create context with default values
@@ -74,7 +80,12 @@ const ShareContext = createContext<ShareContextProps>({
   useMicrophone: false,
   setUseMicrophone: () => {},
   requestScreenCapture: async () => {},
-  stopSharing: () => {}
+  stopSharing: () => {},
+  // File transfer defaults
+  sendFile: async () => '',
+  cancelFileTransfer: () => false,
+  fileTransfers: [],
+  receivedFiles: []
 });
 
 // Provider component
@@ -94,6 +105,10 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
   const [connectedDeviceName, setConnectedDeviceName] = useState<string | null>(null);
   const [connectedDevices, setConnectedDevices] = useState<ConnectedDevice[]>([]);
   const [useMicrophone, setUseMicrophone] = useState<boolean>(false);
+  
+  // File transfer state
+  const [fileTransfers, setFileTransfers] = useState<FileTransferProgress[]>([]);
+  const [receivedFiles, setReceivedFiles] = useState<File[]>([]);
   
   // Hide permission request modal
   const hidePermissionRequest = useCallback(() => {
@@ -214,6 +229,34 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
     setActiveView("home");
   }, [localStream]);
   
+  // Send a file to the connected peer
+  const sendFile = useCallback(async (file: File): Promise<string> => {
+    try {
+      // Ensure we have a connection before sending
+      if (!connectionSuccess) {
+        throw new Error("No active connection");
+      }
+      
+      const fileId = await fileTransferManager.sendFile(file);
+      return fileId;
+    } catch (error) {
+      console.error("Error sending file:", error);
+      
+      toast({
+        title: "File transfer failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+      
+      throw error;
+    }
+  }, [connectionSuccess, toast]);
+  
+  // Cancel an in-progress file transfer
+  const cancelFileTransfer = useCallback((fileId: string): boolean => {
+    return fileTransferManager.cancelTransfer(fileId);
+  }, []);
+  
   // Set up WebSocket message listeners
   useEffect(() => {
     const handleSessionCreated = (data: any) => {
@@ -286,6 +329,54 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [toast]);
   
+  // Set up file transfer progress listener
+  useEffect(() => {
+    const progressHandler = (progress: FileTransferProgress) => {
+      setFileTransfers(prev => {
+        const index = prev.findIndex(p => p.fileName === progress.fileName);
+        if (index >= 0) {
+          const updated = [...prev];
+          updated[index] = progress;
+          return updated;
+        } else {
+          return [...prev, progress];
+        }
+      });
+      
+      // Show toast notifications for completed or failed transfers
+      if (progress.status === 'completed') {
+        toast({
+          title: "File received",
+          description: `Received ${progress.fileName} (${Math.round(progress.totalSize / 1024)}KB)`,
+        });
+      } else if (progress.status === 'failed') {
+        toast({
+          title: "File transfer failed",
+          description: progress.error || "Unknown error",
+          variant: "destructive",
+        });
+      }
+    };
+    
+    const fileReceivedHandler = (file: File) => {
+      setReceivedFiles(prev => [...prev, file]);
+      
+      toast({
+        title: "File ready",
+        description: `${file.name} is ready to download (${Math.round(file.size / 1024)}KB)`,
+      });
+    };
+    
+    // Register handlers with file transfer manager
+    fileTransferManager.onProgress(progressHandler);
+    fileTransferManager.onFileReceived(fileReceivedHandler);
+    
+    return () => {
+      // No way to unregister in our current implementation, but in a real app,
+      // we would remove the listeners here
+    };
+  }, [toast]);
+  
   // Get clientId from WebSocket
   const clientId = getClientId();
   
@@ -316,7 +407,12 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
     useMicrophone,
     setUseMicrophone,
     requestScreenCapture,
-    stopSharing
+    stopSharing,
+    // File transfer
+    sendFile,
+    cancelFileTransfer,
+    fileTransfers,
+    receivedFiles
   };
   
   return (

@@ -9,8 +9,16 @@ import { useShareContext } from "@/contexts/ShareContext";
 import { ConnectingModal } from "./components/modals/ConnectingModal";
 import { PermissionModal } from "./components/modals/PermissionModal";
 import { ConnectionSuccessModal } from "./components/modals/ConnectionSuccessModal";
+import FileTransferComponent from "@/components/FileTransferComponent";
 
 function Router() {
+  const { activeView } = useShareContext();
+  
+  // If the user is in fileTransfer view, render the FileTransferComponent
+  if (activeView === "fileTransfer") {
+    return <FileTransferComponent />;
+  }
+  
   return (
     <Switch>
       <Route path="/" component={Home} />

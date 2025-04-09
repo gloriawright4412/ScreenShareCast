@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { FolderClosed, Settings, Maximize, AlertTriangle } from "lucide-react";
+import { FolderClosed, Settings, Maximize, AlertTriangle, FileIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -11,7 +11,8 @@ const ActiveReceivingView = () => {
   const { 
     connectedDeviceName,
     stopSharing,
-    remoteStream
+    remoteStream,
+    setActiveView
   } = useShareContext();
   
   const [qualityPreference, setQualityPreference] = useState<number>(2); // 1=Performance, 2=Balanced, 3=Quality
@@ -76,7 +77,15 @@ const ActiveReceivingView = () => {
             <span className="ml-1 font-medium">{connectedDeviceName || "Unknown Device"}</span>
           </div>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            className="bg-blue-50 text-blue-600 border-blue-200"
+            onClick={() => setActiveView("fileTransfer")}
+          >
+            <FileIcon className="h-4 w-4 mr-1" />
+            Share Files
+          </Button>
           <Button
             onClick={stopSharing}
             className="bg-red-500 hover:bg-red-600 text-white"
