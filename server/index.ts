@@ -64,12 +64,13 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
-  import os from 'os';
+  const cluster = require('cluster');
+  const os = require('os');
   const numCPUs = os.cpus().length;
 
-  if (process.env.REPLIT_DEPLOYMENT && require('cluster').isMaster) {
+  if (process.env.REPLIT_DEPLOYMENT && cluster.isPrimary) {
     for (let i = 0; i < numCPUs; i++) {
-      require('cluster').fork();
+      cluster.fork();
     }
   } else {
     const startServer = () => {
