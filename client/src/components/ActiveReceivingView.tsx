@@ -22,6 +22,16 @@ const ActiveReceivingView = () => {
   const [playAudio, setPlayAudio] = useState<boolean>(true);
   const [enhanceReadability, setEnhanceReadability] = useState<boolean>(false);
   const [connectionQuality, setConnectionQuality] = useState<number>(85);
+  const [remoteControlEnabled, setRemoteControlEnabled] = useState<boolean>(false);
+
+  const toggleRemoteControl = (enabled: boolean) => {
+    if (enabled) {
+      remoteControl.enable();
+    } else {
+      remoteControl.disable();
+    }
+    setRemoteControlEnabled(enabled);
+  };
   const [stats, setStats] = useState({
     latency: "120 ms",
     resolution: "1080p"
