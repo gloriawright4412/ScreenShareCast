@@ -64,27 +64,24 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
-  const cluster = require('cluster');
-  const os = require('os');
+  import cluster from 'cluster';
+  import os from 'os';
   const numCPUs = os.cpus().length;
 
-  if (process.env.REPLIT_DEPLOYMENT && cluster.isPrimary) {
-    for (let i = 0; i < numCPUs; i++) {
-      cluster.fork();
-    }
-  } else {
-    const startServer = () => {
-      return new Promise((resolve, reject) => {
-        server.listen({
-          port,
-          host: "0.0.0.0",
-          reusePort: true,
-        }, () => {
-          log(`serving on port ${port} - Worker ${process.pid}`);
-          resolve(true);
-        }).on('error', reject);
+  const startServer = () => {
+    return new Promise((resolve, reject) => {
+      server.listen({
+        port,
+        host: "0.0.0.0",
+      }, () => {
+        log(`Server running on port ${port}`);
+        resolve(true);
+      }).on('error', (err) => {
+        console.error('Server error:', err);
+        reject(err);
       });
-    };
+    });
+  };
 
     server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
