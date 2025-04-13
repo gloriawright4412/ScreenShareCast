@@ -10,6 +10,7 @@ import { useShareContext } from "@/contexts/ShareContext";
 import { webRTCManager } from "@/lib/webrtc";
 import { sendWebSocketMessage } from "@/lib/websocket";
 import { QualitySettings } from "@/lib/peerConnection";
+import { motion } from "framer-motion";
 
 const ShareScreenFlow = () => {
   const { toast } = useToast();
@@ -416,20 +417,98 @@ const ShareScreenFlow = () => {
             
             <div className="flex-1">
               <p className="mb-3 text-gray-600 dark:text-gray-300">Or scan this QR code:</p>
-              <div className="bg-white p-2 rounded-lg inline-block mb-2">
-                {sessionCode ? (
-                  <img 
-                    src={getQRCodeUrl()} 
-                    alt="QR Code" 
-                    className="w-48 h-48 mx-auto"
+              
+              <motion.div
+                className="relative bg-white dark:bg-gray-800 p-3 rounded-lg inline-block mb-3 shadow-lg border border-gray-100 dark:border-gray-700"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2, duration: 0.4, type: "spring" }}
+              >
+                {/* Corner markers for QR code */}
+                <div className="absolute left-3 top-3 w-4 h-4 border-l-2 border-t-2 border-primary"></div>
+                <div className="absolute right-3 top-3 w-4 h-4 border-r-2 border-t-2 border-primary"></div>
+                <div className="absolute left-3 bottom-3 w-4 h-4 border-l-2 border-b-2 border-primary"></div>
+                <div className="absolute right-3 bottom-3 w-4 h-4 border-r-2 border-b-2 border-primary"></div>
+                
+                {/* Animated scan line */}
+                {sessionCode && (
+                  <motion.div 
+                    className="absolute left-0 right-0 h-0.5 bg-primary z-10"
+                    initial={{ top: "0%" }}
+                    animate={{ top: ["0%", "98%", "0%"] }}
+                    transition={{ 
+                      duration: 3,
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                      repeatType: "loop"
+                    }}
                   />
+                )}
+                
+                {sessionCode ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                    className="relative"
+                  >
+                    <img 
+                      src={getQRCodeUrl()} 
+                      alt="QR Code" 
+                      className="w-48 h-48 mx-auto rounded"
+                    />
+                    
+                    {/* Subtle pulse animation over QR code */}
+                    <motion.div 
+                      className="absolute inset-0 bg-primary rounded opacity-0" 
+                      animate={{ opacity: [0, 0.05, 0] }}
+                      transition={{ 
+                        duration: 2,
+                        ease: "easeInOut",
+                        repeat: Infinity
+                      }}
+                    />
+                  </motion.div>
                 ) : (
-                  <div className="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100">
-                    <span className="text-gray-400">Generating...</span>
+                  <div className="w-48 h-48 mx-auto flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded relative overflow-hidden">
+                    <div className="absolute inset-0 grid grid-cols-5 grid-rows-5 gap-1 p-2 opacity-20">
+                      {[...Array(25)].map((_, i) => (
+                        <motion.div 
+                          key={i}
+                          className="bg-primary rounded-sm"
+                          initial={{ opacity: 0.3 }}
+                          animate={{ opacity: [0.3, 0.7, 0.3] }}
+                          transition={{ 
+                            duration: 1.5,
+                            delay: i * 0.03 % 0.5,
+                            repeat: Infinity
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <motion.span 
+                      className="text-gray-500 dark:text-gray-300 font-medium relative z-10"
+                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      Generating QR Code...
+                    </motion.span>
                   </div>
                 )}
-              </div>
-              <p className="text-sm text-gray-500">Scan with the ScreenCast app or your camera</p>
+              </motion.div>
+              
+              <motion.p 
+                className="text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <svg className="w-4 h-4 mr-1 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 11h3m-9 4a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm6-3a6 6 0 1 1-12 0 6 6 0 0 1 12 0z" 
+                    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Scan with the ScreenCast app or your camera
+              </motion.p>
             </div>
           </div>
         </CardContent>
@@ -461,21 +540,66 @@ const ShareScreenFlow = () => {
       </Card>
       
       <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={() => setActiveView("home")}
-          className="flex items-center"
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Button
+            variant="outline"
+            onClick={() => setActiveView("home")}
+            className="flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        </motion.div>
+        
+        <motion.div 
+          whileHover={{ scale: 1.05 }} 
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 15
+          }}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <Button
-          onClick={startSharing}
-          className="flex items-center bg-primary hover:bg-primary-dark text-white"
-        >
-          Start Sharing
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
+          <Button
+            onClick={startSharing}
+            className="relative overflow-hidden group flex items-center bg-primary text-white px-6 py-6"
+          >
+            <motion.span
+              className="absolute inset-0 bg-gradient-to-r from-primary-foreground/0 via-primary-foreground/20 to-primary-foreground/0 skew-x-12"
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ 
+                duration: 3, 
+                ease: "easeInOut", 
+                repeat: Infinity, 
+                repeatDelay: 1 
+              }}
+            />
+            
+            <motion.div 
+              className="flex items-center relative z-10"
+              animate={{ scale: [1, 1.03, 1] }}
+              transition={{ 
+                duration: 2, 
+                repeat: Infinity, 
+                repeatType: "mirror"
+              }}
+            >
+              <span className="font-semibold">Start Sharing</span>
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ 
+                  duration: 1.5, 
+                  repeat: Infinity, 
+                  repeatType: "mirror"
+                }}
+              >
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </motion.div>
+            </motion.div>
+          </Button>
+        </motion.div>
       </div>
     </div>
   );
