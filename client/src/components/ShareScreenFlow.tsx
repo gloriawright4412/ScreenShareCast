@@ -274,21 +274,144 @@ const ShareScreenFlow = () => {
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-1">
               <p className="mb-3 text-gray-600 dark:text-gray-300">Share this code with the receiving device:</p>
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 text-center mb-4">
-                <div className="text-2xl font-bold tracking-widest text-primary">
-                  {sessionCode || "Generating..."}
+              <div className="bg-gradient-to-r from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 rounded-lg p-6 text-center mb-4 shadow-inner overflow-hidden relative">
+                {/* Animated dots background */}
+                <div className="absolute inset-0 overflow-hidden opacity-20">
+                  {[...Array(20)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1.5 h-1.5 rounded-full bg-primary"
+                      initial={{ 
+                        x: Math.random() * 100 + "%", 
+                        y: Math.random() * 100 + "%", 
+                        opacity: Math.random() * 0.5 + 0.3 
+                      }}
+                      animate={{ 
+                        x: [
+                          Math.random() * 100 + "%", 
+                          Math.random() * 100 + "%", 
+                          Math.random() * 100 + "%"
+                        ],
+                        y: [
+                          Math.random() * 100 + "%", 
+                          Math.random() * 100 + "%", 
+                          Math.random() * 100 + "%"
+                        ],
+                        opacity: [0.3, 0.7, 0.3]
+                      }}
+                      transition={{ 
+                        duration: Math.random() * 10 + 10, 
+                        repeat: Infinity,
+                        ease: "linear" 
+                      }}
+                    />
+                  ))}
                 </div>
-                <p className="text-sm text-gray-500 mt-2">Code expires in {formatTimeLeft()}</p>
+                
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5, type: "spring" }}
+                >
+                  <div className="text-3xl font-bold tracking-widest bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent relative">
+                    {sessionCode ? (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          type: "spring", 
+                          stiffness: 500, 
+                          damping: 30 
+                        }}
+                      >
+                        {sessionCode.split('').map((char, i) => (
+                          <motion.span 
+                            key={i}
+                            className="inline-block"
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ 
+                              delay: i * 0.05, 
+                              type: "spring", 
+                              stiffness: 500 
+                            }}
+                          >
+                            {char}
+                          </motion.span>
+                        ))}
+                      </motion.div>
+                    ) : (
+                      <span className="inline-block relative">
+                        Generating
+                        <span className="absolute -right-8 top-0">
+                          <motion.span
+                            animate={{ opacity: [0, 1, 0] }}
+                            transition={{ 
+                              duration: 1.5, 
+                              repeat: Infinity, 
+                              times: [0, 0.5, 1] 
+                            }}
+                          >
+                            .
+                          </motion.span>
+                          <motion.span
+                            animate={{ opacity: [0, 1, 0] }}
+                            transition={{ 
+                              duration: 1.5, 
+                              repeat: Infinity, 
+                              times: [0, 0.5, 1],
+                              delay: 0.2  
+                            }}
+                          >
+                            .
+                          </motion.span>
+                          <motion.span
+                            animate={{ opacity: [0, 1, 0] }}
+                            transition={{ 
+                              duration: 1.5, 
+                              repeat: Infinity, 
+                              times: [0, 0.5, 1],
+                              delay: 0.4 
+                            }}
+                          >
+                            .
+                          </motion.span>
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-3 flex items-center justify-center space-x-1 text-sm text-gray-500">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
+                      <path d="M12 2v10l4.24 4.24M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2S2 6.48 2 12s4.48 10 10 10z" 
+                        stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <motion.p
+                      animate={{ opacity: [0.7, 1, 0.7] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      Code expires in {formatTimeLeft()}
+                    </motion.p>
+                  </div>
+                </motion.div>
               </div>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={copyCodeToClipboard}
-                disabled={!sessionCode}
+              
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <Copy className="h-4 w-4 mr-2" />
-                Copy Code
-              </Button>
+                <Button
+                  variant="outline"
+                  className="w-full relative overflow-hidden group"
+                  onClick={copyCodeToClipboard}
+                  disabled={!sessionCode}
+                >
+                  <span className="relative z-10 flex items-center">
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy Code
+                  </span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></span>
+                </Button>
+              </motion.div>
             </div>
             
             <div className="flex-1">
