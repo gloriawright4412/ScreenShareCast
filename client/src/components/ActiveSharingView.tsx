@@ -36,6 +36,24 @@ const ActiveSharingView = () => {
     packetLoss: "0.1%",
     devices: connectedDevices.length.toString()
   });
+
+  useEffect(() => {
+    if (!localStream) return;
+    
+    const statsInterval = setInterval(async () => {
+      const rtcStats = await webRTCManager.getRTCStats();
+      const quality = calculateNetworkQuality(rtcStats);
+      setNetworkQuality(quality);
+      setStats({
+        bitrate: `${(rtcStats.bitrate / 1024 / 1024).toFixed(1)} Mbps`,
+        latency: `${rtcStats.currentRoundTripTime} ms`,
+        packetLoss: `${(rtcStats.packetsLost / rtcStats.packetsSent * 100).toFixed(1)}%`,
+        devices: connectedDevices.length.toString()
+      });
+    }, 2000);
+
+    return () => clearInterval(statsInterval);
+  }, [localStream]);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerInterval = useRef<number | null>(null);

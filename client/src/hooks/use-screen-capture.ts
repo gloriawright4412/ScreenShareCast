@@ -31,9 +31,9 @@ export function useScreenCapture(): ScreenCaptureHook {
 
   // Default quality settings
   const defaultSettings: QualitySettings = {
-    resolution: "1080p",
-    frameRate: 30,
-    quality: "High"
+    resolution: window.innerWidth > 1920 ? "1080p" : "720p",
+    frameRate: navigator.connection?.effectiveType === "4g" ? 30 : 15,
+    quality: navigator.connection?.effectiveType === "4g" ? "High" : "Low"
   };
 
   // Capture microphone function

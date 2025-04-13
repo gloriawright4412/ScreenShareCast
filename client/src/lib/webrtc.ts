@@ -64,6 +64,40 @@ export class WebRTCManager {
     }
   }
 
+  private async monitorConnectionQuality() {
+    if (!this.peerConnection) return;
+    
+    setInterval(async () => {
+      const stats = await this.peerConnection.getStats();
+      let totalPacketsLost = 0;
+      let totalPackets = 0;
+
+      stats.forEach(stat => {
+        if (stat.type === 'outbound-rtp') {
+          totalPacketsLost += stat.packetsLost || 0;
+          totalPackets += stat.packetsSent || 0;
+        }
+      });
+
+      const lossRate = totalPackets > 0 ? (totalPacketsLost / totalPackets) : 0;
+      
+      // Adapt quality based on packet loss
+      if (lossRate > 0.1) { // More than 10% packet loss
+        this.setQualitySettings({
+          ...this.qualitySettings,
+          frameRate: 15,
+          quality: "Low"
+        });
+      } else if (lossRate < 0.05) { // Less than 5% packet loss
+        this.setQualitySettings({
+          ...this.qualitySettings,
+          frameRate: 30,
+          quality: "High"
+        });
+      }
+    }, 5000);
+  }
+
   // Update the stream quality based on current settings
   private async updateStreamQuality() {
     if (!this.localStream) return;
