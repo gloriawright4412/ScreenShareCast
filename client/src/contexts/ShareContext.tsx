@@ -6,6 +6,8 @@ import { sendWebSocketMessage, addMessageListener, removeMessageListener, getCli
 import { apiRequest } from "@/lib/queryClient";
 import { useScreenCapture } from "@/hooks/use-screen-capture";
 import { fileTransferManager, FileTransferProgress } from "@/lib/fileTransfer";
+import { useScreenRecorder } from "@/hooks/use-screen-recorder";
+import { RecordingInfo } from "@/lib/screenRecorder";
 
 // Types
 export type DeviceType = "laptop" | "mobile" | "tv";
@@ -16,7 +18,7 @@ export interface ConnectedDevice {
   type: DeviceType;
 }
 
-export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving" | "fileTransfer";
+export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving" | "fileTransfer" | "recordings";
 
 // Context interface
 interface ShareContextProps {
@@ -51,6 +53,18 @@ interface ShareContextProps {
   cancelFileTransfer: (fileId: string) => boolean;
   fileTransfers: FileTransferProgress[];
   receivedFiles: File[];
+  // Screen recording methods
+  startRecording: (includeAudio?: boolean) => Promise<void>;
+  stopRecording: () => void;
+  pauseRecording: () => void;
+  resumeRecording: () => void;
+  cancelRecording: () => void;
+  downloadRecording: (recordingId: string) => void;
+  deleteRecording: (recordingId: string) => void;
+  recordings: RecordingInfo[];
+  isRecording: boolean;
+  recordingDuration: number;
+  recordingState: string;
 }
 
 // Create context with default values
@@ -85,13 +99,39 @@ const ShareContext = createContext<ShareContextProps>({
   sendFile: async () => '',
   cancelFileTransfer: () => false,
   fileTransfers: [],
-  receivedFiles: []
+  receivedFiles: [],
+  // Screen recording defaults
+  startRecording: async () => {},
+  stopRecording: () => {},
+  pauseRecording: () => {},
+  resumeRecording: () => {},
+  cancelRecording: () => {},
+  downloadRecording: () => {},
+  deleteRecording: () => {},
+  recordings: [],
+  isRecording: false,
+  recordingDuration: 0,
+  recordingState: 'inactive'
 });
 
 // Provider component
 export const ShareProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const { captureScreen } = useScreenCapture();
+  const { 
+    startRecording: startScreenRecording,
+    stopRecording: stopScreenRecording,
+    pauseRecording: pauseScreenRecording,
+    resumeRecording: resumeScreenRecording,
+    cancelRecording: cancelScreenRecording,
+    downloadRecording: downloadScreenRecording,
+    deleteRecording: deleteScreenRecording,
+    recordings: screenRecordings,
+    isRecording: isScreenRecording,
+    recordingState: screenRecordingState,
+    duration: recordingDuration,
+    formatDuration
+  } = useScreenRecorder();
   
   // State
   const [activeView, setActiveView] = useState<ActiveView>("home");
@@ -256,6 +296,149 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
   const cancelFileTransfer = useCallback((fileId: string): boolean => {
     return fileTransferManager.cancelTransfer(fileId);
   }, []);
+  
+  // Screen recording methods
+  const startRecording = useCallback(async (includeAudio = false) => {
+    try {
+      if (!localStream) {
+        toast({
+          title: "Screen capture required",
+          description: "Please start screen sharing before recording",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      await startScreenRecording(localStream, {
+        includeAudio,
+        videoBitsPerSecond: 2500000, // 2.5 Mbps
+        audioBitsPerSecond: includeAudio ? 128000 : undefined,
+      });
+      
+      toast({
+        title: "Recording started",
+        description: "Your screen is now being recorded",
+      });
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      toast({
+        title: "Recording failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [localStream, startScreenRecording, toast]);
+  
+  const stopRecording = useCallback(() => {
+    try {
+      stopScreenRecording();
+      toast({
+        title: "Recording completed",
+        description: "Your recording has been saved",
+      });
+    } catch (error) {
+      console.error("Error stopping recording:", error);
+      toast({
+        title: "Error stopping recording",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [stopScreenRecording, toast]);
+  
+  const pauseRecording = useCallback(() => {
+    try {
+      pauseScreenRecording();
+      toast({
+        title: "Recording paused",
+        description: "Your recording has been paused",
+      });
+    } catch (error) {
+      console.error("Error pausing recording:", error);
+      toast({
+        title: "Error pausing recording",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [pauseScreenRecording, toast]);
+  
+  const resumeRecording = useCallback(() => {
+    try {
+      resumeScreenRecording();
+      toast({
+        title: "Recording resumed",
+        description: "Your recording has been resumed",
+      });
+    } catch (error) {
+      console.error("Error resuming recording:", error);
+      toast({
+        title: "Error resuming recording",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [resumeScreenRecording, toast]);
+  
+  const cancelRecording = useCallback(() => {
+    try {
+      cancelScreenRecording();
+      toast({
+        title: "Recording cancelled",
+        description: "Your recording has been discarded",
+      });
+    } catch (error) {
+      console.error("Error cancelling recording:", error);
+      toast({
+        title: "Error cancelling recording",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [cancelScreenRecording, toast]);
+  
+  const downloadRecording = useCallback((recordingId: string) => {
+    try {
+      const recording = screenRecordings.find(rec => rec.id === recordingId);
+      if (recording) {
+        downloadScreenRecording(recording);
+        toast({
+          title: "Download started",
+          description: `${recording.name} is being downloaded`,
+        });
+      } else {
+        toast({
+          title: "Recording not found",
+          description: "The requested recording could not be found",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error downloading recording:", error);
+      toast({
+        title: "Download failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [downloadScreenRecording, screenRecordings, toast]);
+  
+  const deleteRecording = useCallback((recordingId: string) => {
+    try {
+      deleteScreenRecording(recordingId);
+      toast({
+        title: "Recording deleted",
+        description: "The recording has been removed",
+      });
+    } catch (error) {
+      console.error("Error deleting recording:", error);
+      toast({
+        title: "Deletion failed",
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      });
+    }
+  }, [deleteScreenRecording, toast]);
   
   // Set up WebSocket message listeners
   useEffect(() => {
