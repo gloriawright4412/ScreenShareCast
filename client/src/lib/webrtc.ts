@@ -67,7 +67,8 @@ export class WebRTCManager {
   private async monitorConnectionQuality() {
     if (!this.peerConnection) return;
     
-    setInterval(async () => {
+    // Use requestAnimationFrame for smoother monitoring
+    const monitor = async () => {
       const stats = await this.peerConnection.getStats();
       let totalPacketsLost = 0;
       let totalPackets = 0;

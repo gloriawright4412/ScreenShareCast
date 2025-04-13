@@ -74,9 +74,16 @@ export class AIMonitoringAgent {
   }
 
   private async optimize(): Promise<void> {
-    if (Date.now() - this.lastOptimization < this.optimizationInterval) {
+    const now = Date.now();
+    if (now - this.lastOptimization < this.optimizationInterval) {
       return;
     }
+
+    // Adaptive optimization intervals
+    this.optimizationInterval = Math.max(
+      30000,
+      Math.min(60000, this.metrics.responseTime * 100)
+    );
 
     try {
       // Implement advanced metrics tracking

@@ -66,12 +66,17 @@ app.use((req, res, next) => {
   const port = process.env.PORT || 5000;
   
   const startServer = async () => {
-    // Enable garbage collection for memory optimization
+    // Enable garbage collection and performance optimizations
     if (global.gc) {
       setInterval(() => {
         global.gc();
-      }, 30000);
+      }, 15000); // More frequent GC
     }
+    
+    // Performance optimizations
+    process.env.UV_THREADPOOL_SIZE = '8';
+    server.keepAliveTimeout = 30000;
+    server.headersTimeout = 31000;
     return new Promise((resolve, reject) => {
       server.listen({
         port,
