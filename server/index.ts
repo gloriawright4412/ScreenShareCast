@@ -78,8 +78,7 @@ app.use((req, res, next) => {
   };
 
   startServer().catch(err => {
-    console.error('Server failed to start:', err);
-    process.exit(1);
-  });
-}
-)();
+      console.error('Failed to start server:', err);
+      process.exit(1);
+    });
+})();

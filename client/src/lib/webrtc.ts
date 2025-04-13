@@ -108,7 +108,8 @@ export class WebRTCManager {
           quality: "High"
         });
       }
-    }, 5000);
+    const interval = 5000;
+      }, interval);
   }
 
   // Update the stream quality based on current settings
