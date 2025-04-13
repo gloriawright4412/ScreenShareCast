@@ -71,25 +71,28 @@ app.use((req, res, next) => {
       require('cluster').fork();
     }
   } else {
-    server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`serving on port ${port} - Worker ${process.pid}`);
-    }).on('error', (err) => {
+    const startServer = () => {
+      server.listen({
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, () => {
+        log(`serving on port ${port} - Worker ${process.pid}`);
+      });
+    };
+
+    server.on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
         log(`Port ${port} is in use. Retrying in 1 second...`);
         setTimeout(() => {
           server.close();
-          server.listen({
-            port,
-            host: "0.0.0.0",
-            reusePort: true,
-          });
+          startServer();
         }, 1000);
       } else {
         console.error('Server error:', err);
       }
     });
+
+    startServer();
+  }
 })();
