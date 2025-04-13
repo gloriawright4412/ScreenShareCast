@@ -6,6 +6,21 @@ let isConnected = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 2000;
+const BACKOFF_MULTIPLIER = 1.5;
+
+// Implement exponential backoff for reconnection
+const getReconnectDelay = () => {
+  return RECONNECT_DELAY * Math.pow(BACKOFF_MULTIPLIER, reconnectAttempts);
+};
+
+// Reset connection state
+const resetConnection = () => {
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+  isConnected = false;
+};
 
 const messageListeners: Record<string, ((data: any) => void)[]> = {};
 

@@ -66,10 +66,18 @@ app.use((req, res, next) => {
   const port = process.env.PORT || 5000;
 
   const startServer = () => {
+    // Enable performance optimizations
+    server.keepAliveTimeout = 30000;
+    server.headersTimeout = 31000;
+    
+    // Optimize thread pool for better performance
+    process.env.UV_THREADPOOL_SIZE = '8';
+    
     return new Promise((resolve, reject) => {
       server.listen({
         port,
         host: "0.0.0.0",
+        backlog: 511
       }, () => {
         log(`serving on port ${port} - Worker ${process.pid}`);
         resolve(true);

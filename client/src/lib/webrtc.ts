@@ -80,13 +80,27 @@ export class WebRTCManager {
         }
       });
 
-      requestAnimationFrame(() => monitorStats());
+      const lossRate = totalPackets > 0 ? (totalPacketsLost / totalPackets) : 0;
+      
+      // Auto-adjust quality based on network conditions
+      if (lossRate > 0.1) {
+        this.setQualitySettings({
+          resolution: "720p",
+          frameRate: 15,
+          quality: "Low"
+        });
+      } else if (lossRate < 0.05) {
+        this.setQualitySettings({
+          resolution: "1080p",
+          frameRate: 30,
+          quality: "High"
+        });
+      }
+
+      requestAnimationFrame(monitorStats);
     };
 
     monitorStats();
-
-      stats.forEach(stat => {
-        if (stat.type === 'outbound-rtp') {
           totalPacketsLost += stat.packetsLost || 0;
           totalPackets += stat.packetsSent || 0;
         }
