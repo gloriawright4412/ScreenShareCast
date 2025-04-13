@@ -595,7 +595,19 @@ export const ShareProvider = ({ children }: { children: ReactNode }) => {
     sendFile,
     cancelFileTransfer,
     fileTransfers,
-    receivedFiles
+    receivedFiles,
+    // Screen recording
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    cancelRecording,
+    downloadRecording,
+    deleteRecording,
+    recordings: screenRecordings,
+    isRecording: isScreenRecording,
+    recordingDuration,
+    recordingState: screenRecordingState
   };
   
   return (

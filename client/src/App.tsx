@@ -10,13 +10,18 @@ import { ConnectingModal } from "./components/modals/ConnectingModal";
 import { PermissionModal } from "./components/modals/PermissionModal";
 import { ConnectionSuccessModal } from "./components/modals/ConnectionSuccessModal";
 import FileTransferComponent from "@/components/FileTransferComponent";
+import RecordingsView from "@/components/RecordingsView";
 
 function Router() {
   const { activeView } = useShareContext();
   
-  // If the user is in fileTransfer view, render the FileTransferComponent
+  // Render special components based on the active view
   if (activeView === "fileTransfer") {
     return <FileTransferComponent />;
+  }
+  
+  if (activeView === "recordings") {
+    return <RecordingsView />;
   }
   
   return (
