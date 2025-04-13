@@ -18,7 +18,7 @@ export interface ConnectedDevice {
   type: DeviceType;
 }
 
-export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving" | "fileTransfer" | "recordings";
+export type ActiveView = "home" | "shareScreen" | "receiveScreen" | "activeSharing" | "activeReceiving" | "fileTransfer" | "recordings" | "tvMode";
 
 // Context interface
 interface ShareContextProps {
