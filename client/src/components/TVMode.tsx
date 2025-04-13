@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useShareContext } from "@/contexts/ShareContext";
 import { motion } from "framer-motion";
 import { 
-  Record, 
+  PlaySquare, 
   Pause, 
   StopCircle,
   Volume2, 

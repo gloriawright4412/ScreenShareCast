@@ -27,8 +27,18 @@ const ActiveReceivingView = () => {
   const toggleRemoteControl = (enabled: boolean) => {
     if (enabled) {
       remoteControl.enable();
+      // Show temporary success notification
+      toast({
+        title: "Remote Control Enabled",
+        description: "You can now control the shared screen",
+        duration: 3000
+      });
     } else {
       remoteControl.disable();
+      toast({
+        title: "Remote Control Disabled",
+        duration: 2000
+      });
     }
     setRemoteControlEnabled(enabled);
   };

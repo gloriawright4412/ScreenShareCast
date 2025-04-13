@@ -35,10 +35,23 @@ export class RemoteControl {
   }
 
   private setupControlChannel() {
-    this.controlDataChannel = webRTCManager.createControlChannel('remote-control');
-    
-    if (this.controlDataChannel) {
-      this.controlDataChannel.onmessage = this.handleRemoteControlMessage.bind(this);
+    try {
+      this.controlDataChannel = webRTCManager.createControlChannel('remote-control');
+      
+      if (this.controlDataChannel) {
+        this.controlDataChannel.onmessage = this.handleRemoteControlMessage.bind(this);
+        this.controlDataChannel.onerror = (error) => {
+          console.error('Remote control channel error:', error);
+          this.disable();
+        };
+        this.controlDataChannel.onclose = () => {
+          console.log('Remote control channel closed');
+          this.disable();
+        };
+      }
+    } catch (error) {
+      console.error('Failed to setup remote control channel:', error);
+      this.disable();
     }
   }
 
