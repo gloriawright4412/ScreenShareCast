@@ -74,12 +74,15 @@ app.use((req, res, next) => {
     }
   } else {
     const startServer = () => {
-      server.listen({
-        port,
-        host: "0.0.0.0",
-        reusePort: true,
-      }, () => {
-        log(`serving on port ${port} - Worker ${process.pid}`);
+      return new Promise((resolve, reject) => {
+        server.listen({
+          port,
+          host: "0.0.0.0",
+          reusePort: true,
+        }, () => {
+          log(`serving on port ${port} - Worker ${process.pid}`);
+          resolve(true);
+        }).on('error', reject);
       });
     };
 
