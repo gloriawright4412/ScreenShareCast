@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { FolderClosed, Settings, Maximize, AlertTriangle, FileIcon } from "lucide-react";
+import { FolderClosed, Settings, Maximize, AlertTriangle, FileIcon, Tv, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useShareContext } from "@/contexts/ShareContext";
+import { motion } from "framer-motion";
+import TVModePromotionCard from "./TVModePromotionCard";
 
 const ActiveReceivingView = () => {
   const { 
@@ -78,6 +80,22 @@ const ActiveReceivingView = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Button
+              variant="outline"
+              className="bg-purple-50 text-purple-600 border-purple-200 relative overflow-hidden group"
+              onClick={() => setActiveView("tvMode")}
+            >
+              <Tv className="h-4 w-4 mr-1 group-hover:animate-bounce" />
+              <span className="relative z-10">TV Mode</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-purple-100 to-purple-200 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+              <ExternalLink className="h-3 w-3 ml-1 text-purple-400" />
+            </Button>
+          </motion.div>
+          
           <Button
             variant="outline"
             className="bg-blue-50 text-blue-600 border-blue-200"
@@ -86,6 +104,7 @@ const ActiveReceivingView = () => {
             <FileIcon className="h-4 w-4 mr-1" />
             Share Files
           </Button>
+          
           <Button
             onClick={stopSharing}
             className="bg-red-500 hover:bg-red-600 text-white"
@@ -105,7 +124,24 @@ const ActiveReceivingView = () => {
             </svg>
             <h3 className="text-white font-medium">{connectedDeviceName || "Unknown Device"}'s Screen</h3>
           </div>
-          <div className="flex">
+          <div className="flex items-center">
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="mr-2"
+            >
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                title="TV Mode"
+                onClick={() => setActiveView("tvMode")}
+              >
+                <Tv className="h-4 w-4 mr-1" />
+                TV Mode
+              </Button>
+            </motion.div>
+            
             <Button
               variant="ghost"
               size="icon"
@@ -265,6 +301,18 @@ const ActiveReceivingView = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* TV Mode Promotion */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Enhanced Viewing Experience</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <TVModePromotionCard />
+        </motion.div>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { PermissionModal } from "./components/modals/PermissionModal";
 import { ConnectionSuccessModal } from "./components/modals/ConnectionSuccessModal";
 import FileTransferComponent from "@/components/FileTransferComponent";
 import RecordingsView from "@/components/RecordingsView";
+import TVMode from "@/components/TVMode";
 
 function Router() {
   const { activeView } = useShareContext();
@@ -22,6 +23,10 @@ function Router() {
   
   if (activeView === "recordings") {
     return <RecordingsView />;
+  }
+  
+  if (activeView === "tvMode") {
+    return <TVMode />;
   }
   
   return (
@@ -38,13 +43,17 @@ function App() {
     showPermissionRequest,
     connectionSuccess,
     hideConnectionSuccess,
-    connectedDeviceName
+    connectedDeviceName,
+    activeView
   } = useShareContext();
+
+  // Don't show header in TV Mode for a cleaner full-screen experience
+  const showHeader = activeView !== "tvMode";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white min-h-screen">
-        <Header />
+      <div className={`${activeView === "tvMode" ? "" : "bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"} min-h-screen`}>
+        {showHeader && <Header />}
         <Router />
         
         {/* Application Modals */}
