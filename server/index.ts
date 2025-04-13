@@ -92,4 +92,4 @@ app.use((req, res, next) => {
       console.error('Server error:', err);
     }
   });
-})();
+});
