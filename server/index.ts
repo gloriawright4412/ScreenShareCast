@@ -64,11 +64,14 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
-  import cluster from 'cluster';
-  import os from 'os';
-  const numCPUs = os.cpus().length;
-
-  const startServer = () => {
+  
+  const startServer = async () => {
+    // Enable garbage collection for memory optimization
+    if (global.gc) {
+      setInterval(() => {
+        global.gc();
+      }, 30000);
+    }
     return new Promise((resolve, reject) => {
       server.listen({
         port,
