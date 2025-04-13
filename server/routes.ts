@@ -15,8 +15,11 @@ interface WebSocketMessage {
 const clients = new Map<string, WebSocket>();
 const sessions = new Map<string, Set<string>>();
 
+import { AIMonitoringAgent } from './ai-agent';
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+  const aiAgent = new AIMonitoringAgent(clients);
 
   // Create WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: "/ws" });
@@ -34,6 +37,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     // Handle incoming messages
     ws.on("message", async (message) => {
+      aiAgent.recordRequest();
       try {
         const parsedMessage: WebSocketMessage = JSON.parse(message.toString());
         
@@ -67,6 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             break;
         }
       } catch (error) {
+        aiAgent.recordError();
         console.error("Error processing WebSocket message:", error);
         ws.send(JSON.stringify({
           type: "error",
