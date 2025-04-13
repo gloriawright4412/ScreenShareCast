@@ -40,7 +40,7 @@ app.use((req, res, next) => {
 (async () => {
   // Initialize database connection
   await setupDatabase();
-  
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -64,45 +64,22 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = process.env.PORT || 5000;
-  
-  const startServer = async () => {
-    // Enable garbage collection and performance optimizations
-    if (global.gc) {
-      setInterval(() => {
-        global.gc();
-      }, 15000); // More frequent GC
-    }
-    
-    // Performance optimizations
-    process.env.UV_THREADPOOL_SIZE = '8';
-    server.keepAliveTimeout = 30000;
-    server.headersTimeout = 31000;
+
+  const startServer = () => {
     return new Promise((resolve, reject) => {
       server.listen({
         port,
         host: "0.0.0.0",
       }, () => {
-        log(`Server running on port ${port}`);
+        log(`serving on port ${port} - Worker ${process.pid}`);
         resolve(true);
-      }).on('error', (err) => {
-        console.error('Server error:', err);
-        reject(err);
-      });
+      }).on('error', reject);
     });
   };
 
-    server.on('error', (err) => {
-      if (err.code === 'EADDRINUSE') {
-        log(`Port ${port} is in use. Retrying in 1 second...`);
-        setTimeout(() => {
-          server.close();
-          startServer();
-        }, 1000);
-      } else {
-        console.error('Server error:', err);
-      }
-    });
-
-    startServer();
-  }
-})();
+  startServer().catch(err => {
+    console.error('Server failed to start:', err);
+    process.exit(1);
+  });
+}
+)();

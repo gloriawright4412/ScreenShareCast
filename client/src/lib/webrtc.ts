@@ -68,10 +68,22 @@ export class WebRTCManager {
     if (!this.peerConnection) return;
     
     // Use requestAnimationFrame for smoother monitoring
-    const monitor = async () => {
+    const monitorStats = async () => {
       const stats = await this.peerConnection.getStats();
       let totalPacketsLost = 0;
       let totalPackets = 0;
+
+      stats.forEach(stat => {
+        if (stat.type === 'outbound-rtp') {
+          totalPacketsLost += stat.packetsLost || 0;
+          totalPackets += stat.packetsSent || 0;
+        }
+      });
+
+      requestAnimationFrame(() => monitorStats());
+    };
+
+    monitorStats();
 
       stats.forEach(stat => {
         if (stat.type === 'outbound-rtp') {
